@@ -4,7 +4,7 @@
 ![status](https://img.shields.io/badge/status-in%20progress-yellow.svg)
 ![license](https://img.shields.io/badge/license-MIT-green.svg)
 
-This is the second homework for the Multiple Classifiers System's class.
+This is the second homework for the Multiple Classifiers System's class. The project was forked and adapted from the [first homework](https://github.com/jpedrocm/jpcm-lista1-codigo).
 
 ## Description
 
@@ -35,22 +35,28 @@ The goal of this homework is to perform an experiment comparing two different pr
 ```
 python main.py
 ```
-* Once finished, generate all results
+* Generate all metric results
 ```
-python generate_results.py
+python generate_metrics.py
+```
+* Then, compare the scenarios wanted
+```
+python compare_scenarios.py [-f FILENAME] [-s SEPARATE] [-c1 COLUMN1] [-c2 COLUMN2]
 ```
 
 ## Project Structure
 
     .            
     ├── code                             # Code files
-    │   ├── generate_results.py          # generate metric results
-    │   ├── main.py                      # generate models predictions
-    │   ├── prefit_voting_classifier.py  # voting classifier for prefit base classifiers
-    │   └── utils.py                     # utils functions
+    |   ├── compare_scenarios.py         # Compare metric results 
+    │   ├── generate_metrics.py          # Generate metric results
+    │   ├── generate_predictions.py      # Generate models predictions
+    │   ├── prefit_voting_classifier.py  # Voting classifier for prefit base classifiers
+    │   └── utils.py                     # Utils functions
+    ├── comparisons                      # Result comparison files
     ├── data                             # Datasets files
+    ├── metrics                          # Metrics files
     ├── predictions                      # Models predictions files
-    ├── results                          # Metrics files
     ├── LICENSE.md
     └── README.md
 
