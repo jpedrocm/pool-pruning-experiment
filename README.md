@@ -8,7 +8,7 @@ This is the second homework for the Multiple Classifiers System's class. The pro
 
 ## Description
 
-The goal of this homework is to perform an experiment comparing two different prunning strategies for pool of classifiers applied with three different validation sets. Bagging was chosen for generating pools of 100 Perceptrons, which are combined with hard voting. Metrics are collected for each fold in a 10-fold cross-validation setting. They include accuracy, f-measure, AUC and g-mean. Means and standard deviations of these metrics are calculated in order to analyze the results. Two pairwise diversity measures are also calculated for the prunned ensembles.
+The goal of this homework is to perform an experiment comparing two different pruning strategies for pool of classifiers applied with three different validation sets. Bagging was chosen for generating pools of 100 Perceptrons, which are combined with hard voting. Metrics are collected for each fold in a 10-fold cross-validation setting. They include accuracy, f-measure, AUC and g-mean. Means and standard deviations of these metrics are calculated in order to analyze the results. Two pairwise diversity measures are also calculated for the pruned ensembles.
 
 ## Getting Started
 
