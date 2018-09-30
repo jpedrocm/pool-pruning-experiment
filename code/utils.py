@@ -196,7 +196,7 @@ def generate_metrics(predictions_dict):
 			for hardness_type, filter_dict in fold_dict.iteritems():
 				_check_create_dict(metrics[set_name], hardness_type)
 
-				for strategy, strategy_dict in filter_dict.iteritems():
+				for strategy, predicted in filter_dict.iteritems():
 
 					metrics_str = metrics[set_name][hardness_type]
 
@@ -255,7 +255,7 @@ def _unfilled_row(str_columns, float_columns):
 
 def _fill_dataframe_folds(df, summary, set_name, hardness, strategy):
 	df.at[0, "set"] = set_name
-	df.at[0, "hardness"] = sampling
+	df.at[0, "hardness"] = hardness
 	df.at[0, "strategy"] = strategy
 	return _fill_dataframe_metrics(df, summary)
 
