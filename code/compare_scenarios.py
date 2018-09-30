@@ -26,3 +26,5 @@ if __name__ == "__main__":
 
 	focus_columns = [col for col in [args.column1, args.column2] if col]
 	write_comparison(dfs, focus_columns, args.filename)
+
+	print "Stored comparison"
