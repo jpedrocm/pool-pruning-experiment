@@ -60,12 +60,13 @@ if __name__ == "__main__":
 
 				for strategy_name, pruning_strategy in config["pruning_strategies"]:
 
-					pruned_pool = pruning_strategy(clf_pool,
-						                           validation_instances,
-						                           validation_gold_labels)
+					pruned_pool, pool_rest = pruning_strategy(clf_pool,
+						                          validation_instances,
+						                          validation_gold_labels)
 
 					cur_predictions = pruned_pool.predict(test_instances)
-					subpredictions[strategy_name] = cur_predictions.astype(int).tolist()
+					subpredictions[strategy_name] = (cur_predictions.astype(int).tolist(),
+						                             pool_rest)
 
 					print "Experiment " + str(exp)
 					exp+=1

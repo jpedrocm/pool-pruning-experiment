@@ -143,7 +143,7 @@ def _find_best_per_cluster(clusters, validation_instances, validation_labels):
 		best_k_clf.append(cur_best_clf)
 		best_k_feats.append(cur_best_feats)
 
-	return _get_voting_clf(best_k_clf, best_k_feats)
+	return _get_voting_clf(best_k_clf, best_k_feats), len(best_k_clf)
 
 def _k_best_means(pool_clf, validation_instances, validation_labels, k, n_jobs):
 	clusters = _find_k_clusters(pool_clf, k, n_jobs)
@@ -152,6 +152,7 @@ def _k_best_means(pool_clf, validation_instances, validation_labels, k, n_jobs):
 def _find_best_first(triples, validation_instances, validation_labels):
 	best_ensemble_error = 100
 	best_ensemble = None
+	best_ensemble_size = 0
 
 	cur_clfs = []
 	cur_feats = []
@@ -166,8 +167,9 @@ def _find_best_first(triples, validation_instances, validation_labels):
 		if error < best_ensemble_error:
 			best_ensemble_error = error
 			best_ensemble = ensemble
+			best_ensemble_size = len(cur_clfs)
 
-	return best_ensemble
+	return best_ensemble, best_ensemble_size
 
 def _best_first_pruning(pool_clf, validation_instances, validation_labels):
 	ordered_triples = _order_clfs(pool_clf, validation_instances, 
