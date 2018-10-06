@@ -60,7 +60,7 @@ if __name__ == "__main__":
 
 				for strategy_name, pruning_strategy in config["pruning_strategies"]:
 
-					pruned_pool = pruning_strategy(clf_pool, 
+					pruned_pool = pruning_strategy(clf_pool,
 						                           validation_instances,
 						                           validation_gold_labels)
 

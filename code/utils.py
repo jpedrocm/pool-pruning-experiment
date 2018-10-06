@@ -16,6 +16,7 @@ from sklearn.ensemble import BaggingClassifier
 from sklearn.metrics import accuracy_score, f1_score, roc_auc_score
 from sklearn.metrics import precision_score, recall_score
 from sklearn.metrics.pairwise import euclidean_distances
+from sklearn.cluster import KMeans
 
 from prefit_voting_classifier import VotingClassifier
 
@@ -23,6 +24,7 @@ from prefit_voting_classifier import VotingClassifier
 def load_experiment_configuration():
 	STRATEGY_PERCENTAGE = 0.5
 	N_JOBS = -1
+	PRUNNING_CLUSTERS = 10
 
 	config = {
 	"num_folds": 10,
@@ -35,7 +37,8 @@ def load_experiment_configuration():
 	"generation_strategy": partial(BaggingClassifier, 
 		                           max_samples = STRATEGY_PERCENTAGE,
 		                           n_jobs = -1),
-	"pruning_strategies": _create_pruning_strategies(),
+	"pruning_strategies": _create_pruning_strategies(PRUNNING_CLUSTERS,
+		                                             N_JOBS),
 	"diversity_measures": _create_diversity_measures()
 	}
 
@@ -49,8 +52,10 @@ def _create_validation_hardnesses(threshold):
 def _create_diversity_measures():
 	return []
 
-def _create_pruning_strategies():
-	return [("Best First", partial(_best_first_pruning))]
+def _create_pruning_strategies(num_clusters, n_jobs):
+	return [("Best First", partial(_best_first_pruning)),
+	        ("K Best Means", partial(_k_best_means, k=num_clusters, 
+	        	                     n_jobs = n_jobs))]
 
 def _find_k_neighbours(distances, k):
 	
@@ -101,8 +106,51 @@ def _order_clfs(pool_clf, validation_instances, validation_labels):
 	triples = [(clfs[i], clfs_feats[i], errors[i]) for i in xrange(len(errors))]
 	return sorted(triples, key=lambda t: t[2])
 
+def _find_k_clusters(pool_clf, k, n_jobs):
+	clfs = pool_clf.estimators_
+	clfs_feats = pool_clf.estimators_features_
+
+	pool_weights = [clf.coef_[0] for clf in clfs]
+	k_means = KMeans(n_clusters = k, n_jobs = n_jobs)
+	clusters_labels = k_means.fit_predict(pool_weights)
+
+	clusters = {cluster_label: [] for cluster_label in clusters_labels}
+	for i in xrange(len(clfs)):
+		cluster = clusters_labels[i]
+		clusters[cluster].append((clfs[i], clfs_feats[i]))
+
+	return clusters
+
+def _find_best_per_cluster(clusters, validation_instances, validation_labels):
+	best_k_clf = []
+	best_k_feats = []
+
+	for cluster, clfs_tuples in clusters.iteritems():
+		cur_best_clf = None
+		cur_best_feats = None
+		cur_best_error = 100
+
+		for clf_tuple in clfs_tuples:
+			clf = clf_tuple[0]
+			predicted = clf.predict(validation_instances)
+			error = _error_score(validation_labels, predicted)
+
+			if error < cur_best_error:
+				cur_best_error = error
+				cur_best_clf = clf
+				cur_best_feats = clf_tuple[1]
+
+		best_k_clf.append(cur_best_clf)
+		best_k_feats.append(cur_best_feats)
+
+	return _get_voting_clf(best_k_clf, best_k_feats)
+
+def _k_best_means(pool_clf, validation_instances, validation_labels, k, n_jobs):
+	clusters = _find_k_clusters(pool_clf, k, n_jobs)
+	return _find_best_per_cluster(clusters, validation_instances, validation_labels)
+
 def _find_best_first(triples, validation_instances, validation_labels):
-	best_ensemble_error = 2.0
+	best_ensemble_error = 100
 	best_ensemble = None
 
 	cur_clfs = []
