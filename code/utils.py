@@ -32,7 +32,7 @@ def load_experiment_configuration():
 	"kdn": 5,
 	"strategy_percentage": STRATEGY_PERCENTAGE,
 	"validation_hardnesses": _create_validation_hardnesses(threshold = 0.5),
-	"base_classifier": partial(Perceptron, max_iter = 10, tol = 0.001,
+	"base_classifier": partial(Perceptron, max_iter = 20, tol = 0.001,
 		                       penalty = None, n_jobs = N_JOBS),
 	"generation_strategy": partial(BaggingClassifier, 
 		                           max_samples = STRATEGY_PERCENTAGE,
@@ -89,8 +89,9 @@ def _create_agreement_matrix(di_vector, dj_vector):
 
 def _get_agreement_matrix_position(err_i, err_j, vec_i, vec_j):
 	xrg = xrange(len(vec_i))
-	agreement_vector = [vec_i[p] is err_i and vec_j[p] is err_j for p in xrg]
-	return len(filter(lambda b: b is True, agreement_vector))
+	agreement_vector = [vec_i[p] == err_i and vec_j[p] == err_j for p in xrg]
+	filtered = filter(lambda b: b == True, agreement_vector)
+	return len(filtered)
 
 def _disagreement_measure(agreement_matrix):
 	num = agreement_matrix[0][1] + agreement_matrix[1][0]
@@ -380,7 +381,7 @@ def read_pandas_summary():
 def separate_pandas_summary(df, separate_sets):
 	dfs = []
 
-	if separate_sets is True:
+	if separate_sets == True:
 		sets = df["set"].unique()
 		for set_name in sets:
 			dfs.append(df.loc[df["set"]==set_name])
