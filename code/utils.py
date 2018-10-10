@@ -206,7 +206,7 @@ def save_predictions(data):
 	with open('../predictions/all_predictions.json', 'w') as outfile:
 		json.dump(data, outfile)
 
-def load_predictions():
+def load_predictions_data():
 	with open('../predictions/all_predictions.json', 'r') as outfile:
 		return json.load(outfile)
 
@@ -218,13 +218,17 @@ def _g1_score(gold_labels, predicted_labels, average):
 	recall = recall_score(gold_labels, predicted_labels, average=average)
 	return sqrt(precision*recall)
 
-def _calculate_metrics(gold_labels, predicted_labels):
+def _calculate_metrics(gold_labels, data):
+
+	predicted_labels = data[0]
+	final_pool_size = data[1]
 
 	metrics = {}
 	metrics["auc_roc"] = roc_auc_score(gold_labels, predicted_labels, average='macro')
 	metrics["g1"] = _g1_score(gold_labels, predicted_labels, average='macro')
 	metrics["f1"] = f1_score(gold_labels, predicted_labels, average='macro')
 	metrics["acc"] = accuracy_score(gold_labels, predicted_labels)
+	metrics["pool"] = final_pool_size
 
 	return metrics
 
@@ -246,11 +250,11 @@ def generate_metrics(predictions_dict):
 			for hardness_type, filter_dict in fold_dict.iteritems():
 				_check_create_dict(metrics[set_name], hardness_type)
 
-				for strategy, predicted in filter_dict.iteritems():
+				for strategy, tuple_data in filter_dict.iteritems():
 
 					metrics_str = metrics[set_name][hardness_type]
 
-					fold_metrics = _calculate_metrics(gold_labels, predicted)
+					fold_metrics = _calculate_metrics(gold_labels, tuple_data)
 
 					if strategy not in metrics_str.keys():
 					    metrics_str[strategy] = [fold_metrics]
@@ -285,12 +289,13 @@ def pandanize_summary(summary):
 
 	df = pd.DataFrame(columns = ['set', 'hardness', 'strategy',
 	                  'mean_auc_roc', 'std_auc_roc', 'mean_acc', 'std_acc',
-	                  'mean_f1', 'std_f1', 'mean_g1', 'std_g1'])
+	                  'mean_f1', 'std_f1', 'mean_g1', 'std_g1',
+	                  'mean_pool', 'std_pool'])
 
 	for set_name, set_dict in summary.iteritems():
 		for hardness_type, filter_dict in set_dict.iteritems():
 			for strategy, summary_folds in filter_dict.iteritems():
-				df_folds = pd.DataFrame(_unfilled_row(3, 8),
+				df_folds = pd.DataFrame(_unfilled_row(3, 10),
 					                    columns = df.columns)
 				_fill_dataframe_folds(df_folds, summary_folds, set_name,
 					                  hardness_type, strategy)
