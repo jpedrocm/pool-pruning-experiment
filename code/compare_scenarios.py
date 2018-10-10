@@ -18,13 +18,12 @@ if __name__ == "__main__":
 		                help="Output filename without extension")
 	args = parser.parse_args()
 
-	print "Reading summary"
+	print "Step 1 - Reading summary"
 	df = read_pandas_summary()
 
-	print "Comparing scenarios"
+	print "Step 2 - Comparing scenarios"
 	dfs = separate_pandas_summary(df, args.separate)
 
+	print "Step 3 - Storing comparisons"
 	focus_columns = [col for col in [args.column1, args.column2] if col]
 	write_comparison(dfs, focus_columns, args.filename)
-
-	print "Stored comparison"

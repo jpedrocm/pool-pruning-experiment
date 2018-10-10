@@ -17,14 +17,14 @@ from sklearn.model_selection import StratifiedKFold
 
 if __name__ == "__main__":
 
-	print "Loading configurations"
+	print "Step 1 - Loading configurations"
 
 	datasets_filenames = load_datasets_filenames()
 	config = load_experiment_configuration()
 	predictions = {}
 	exp = 1
 
-	print "Starting experiment"
+	print "Step 2 - Starting experiment"
 
 	for dataset_filename in datasets_filenames:
 		instances, gold_labels = load_dataset(dataset_filename)
@@ -60,17 +60,18 @@ if __name__ == "__main__":
 
 				for strategy_name, pruning_strategy in config["pruning_strategies"]:
 
-					pruned_pool, pool_rest = pruning_strategy(clf_pool,
+					pruned_pool, pool_rem_size = pruning_strategy(clf_pool,
 						                          validation_instances,
 						                          validation_gold_labels)
 
 					cur_predictions = pruned_pool.predict(test_instances)
 					subpredictions[strategy_name] = (cur_predictions.astype(int).tolist(),
-						                             pool_rest)
+						                             pool_rem_size)
 
 					print "Experiment " + str(exp)
 					exp+=1
 
-	print "Finished experiment"
+	print "Step 2 - Finished experiment"
+
+	print "Step 3 - Storing predictions"
 	save_predictions(predictions)
-	print "Stored predictions"
