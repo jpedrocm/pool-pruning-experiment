@@ -10,6 +10,7 @@ rn.seed(2264)
 from utils import load_datasets_filenames, load_experiment_configuration
 from utils import load_dataset, save_predictions
 from utils import select_validation_set
+from utils import get_voting_pool_size, calculate_pool_diversity
 
 from sklearn.model_selection import StratifiedKFold
 
@@ -60,13 +61,24 @@ if __name__ == "__main__":
 
 				for strategy_name, pruning_strategy in config["pruning_strategies"]:
 
-					pruned_pool, pool_rem_size = pruning_strategy(clf_pool,
-						                          validation_instances,
-						                          validation_gold_labels)
+					pruned_pool = pruning_strategy(clf_pool, validation_instances,
+						                            validation_gold_labels)
+
+					pool_rem_size = get_voting_pool_size(pruned_pool)
 
 					cur_predictions = pruned_pool.predict(test_instances)
-					subpredictions[strategy_name] = (cur_predictions.astype(int).tolist(),
-						                             pool_rem_size)
+					data_arr = [cur_predictions.astype(int).tolist(), pool_rem_size]
+
+					for measure in config["diversity_measures"]:
+						measure_value = calculate_pool_diversity(measure,
+							                                 pruned_pool,
+							                        validation_instances,
+							                      validation_gold_labels,
+							                               pool_rem_size)
+
+						data_arr.append(measure_value)
+
+					subpredictions[strategy_name] = data_arr
 
 					print "Experiment " + str(exp)
 					exp+=1

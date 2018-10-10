@@ -50,12 +50,57 @@ def _create_validation_hardnesses(threshold):
 	        ("Easy", partial(operator.gt, threshold))]
 
 def _create_diversity_measures():
-	return []
+	return [partial(_disagreement_measure), partial(_double_fault_measure)]
 
 def _create_pruning_strategies(num_clusters, n_jobs):
 	return [("Best First", partial(_best_first_pruning)),
-	        ("K Best Means", partial(_k_best_means, k=num_clusters, 
+	        ("K Best Means", partial(_k_best_means_pruning, k=num_clusters, 
 	        	                     n_jobs = n_jobs))]
+
+def calculate_pool_diversity(measure_fn, pool, instances, gold_labels, pool_size):
+	if pool_size <= 1:
+		return 0
+
+	error_vectors = [_get_error_vector(estim, instances, gold_labels) for estim \
+	                 in pool.estimators]
+
+	summed_diversity = 0
+
+	for i in xrange(pool_size-1):
+		for j in xrange(i+1, pool_size):
+			matrix = _create_agreement_matrix(error_vectors[i], error_vectors[j])
+			summed_diversity += measure_fn(matrix)
+
+	return _average_pairs_diversity(summed_diversity, pool_size)
+
+def _average_pairs_diversity(summed_diversity, pool_size):
+	return (2*summed_diversity)/(pool_size*(pool_size-1))
+
+def _get_error_vector(clf, instances, gold_labels):
+	predicted = clf.predict(instances)
+	return [predicted[i]==gold_labels[i] for i in xrange(len(gold_labels))]
+
+def _create_agreement_matrix(di_vector, dj_vector):
+	d00 = _get_agreement_matrix_position(False, False, di_vector, dj_vector)
+	d01 = _get_agreement_matrix_position(False, True, di_vector, dj_vector)
+	d10 = _get_agreement_matrix_position(True, False, di_vector, dj_vector)
+	d11 = _get_agreement_matrix_position(True, True, di_vector, dj_vector)
+	return [[d00, d01], [d10, d11]]
+
+def _get_agreement_matrix_position(err_i, err_j, vec_i, vec_j):
+	xrg = xrange(len(vec_i))
+	agreement_vector = [vec_i[p] is err_i and vec_j[p] is err_j for p in xrg]
+	return len(filter(lambda b: b is True, agreement_vector))
+
+def _disagreement_measure(agreement_matrix):
+	num = agreement_matrix[0][1] + agreement_matrix[1][0]
+	den = sum(agreement_matrix[0]) + sum(agreement_matrix[1])
+	return float(num)/den
+
+def _double_fault_measure(agreement_matrix):
+	num = agreement_matrix[0][0]
+	den = sum(agreement_matrix[0]) + sum(agreement_matrix[1])
+	return float(num)/den
 
 def _find_k_neighbours(distances, k):
 	
@@ -143,16 +188,15 @@ def _find_best_per_cluster(clusters, validation_instances, validation_labels):
 		best_k_clf.append(cur_best_clf)
 		best_k_feats.append(cur_best_feats)
 
-	return _get_voting_clf(best_k_clf, best_k_feats), len(best_k_clf)
+	return _get_voting_clf(best_k_clf, best_k_feats)
 
-def _k_best_means(pool_clf, validation_instances, validation_labels, k, n_jobs):
+def _k_best_means_pruning(pool_clf, validation_instances, validation_labels, k, n_jobs):
 	clusters = _find_k_clusters(pool_clf, k, n_jobs)
 	return _find_best_per_cluster(clusters, validation_instances, validation_labels)
 
 def _find_best_first(triples, validation_instances, validation_labels):
 	best_ensemble_error = 100
 	best_ensemble = None
-	best_ensemble_size = 0
 
 	cur_clfs = []
 	cur_feats = []
@@ -167,9 +211,8 @@ def _find_best_first(triples, validation_instances, validation_labels):
 		if error < best_ensemble_error:
 			best_ensemble_error = error
 			best_ensemble = ensemble
-			best_ensemble_size = len(cur_clfs)
 
-	return best_ensemble, best_ensemble_size
+	return best_ensemble
 
 def _best_first_pruning(pool_clf, validation_instances, validation_labels):
 	ordered_triples = _order_clfs(pool_clf, validation_instances, 
@@ -182,6 +225,9 @@ def _get_voting_clf(base_clfs, clfs_feats):
 	pool_size = len(base_clfs)
 	clfs_tuples = [(str(i), base_clfs[i]) for i in xrange(pool_size)]
 	return VotingClassifier(clfs_tuples, clfs_feats, voting = 'hard')
+
+def get_voting_pool_size(voting_pool):
+	return len(voting_pool.estimators)
 
 def load_datasets_filenames():
 	filenames = ["cm1", "jm1"]
@@ -222,6 +268,8 @@ def _calculate_metrics(gold_labels, data):
 
 	predicted_labels = data[0]
 	final_pool_size = data[1]
+	disagreement = data[2]
+	double_fault = data[3]
 
 	metrics = {}
 	metrics["auc_roc"] = roc_auc_score(gold_labels, predicted_labels, average='macro')
@@ -229,6 +277,8 @@ def _calculate_metrics(gold_labels, data):
 	metrics["f1"] = f1_score(gold_labels, predicted_labels, average='macro')
 	metrics["acc"] = accuracy_score(gold_labels, predicted_labels)
 	metrics["pool"] = final_pool_size
+	metrics["disagr"] = disagreement
+	metrics["2xfault"] = double_fault
 
 	return metrics
 
@@ -250,11 +300,11 @@ def generate_metrics(predictions_dict):
 			for hardness_type, filter_dict in fold_dict.iteritems():
 				_check_create_dict(metrics[set_name], hardness_type)
 
-				for strategy, tuple_data in filter_dict.iteritems():
+				for strategy, data_arr in filter_dict.iteritems():
 
 					metrics_str = metrics[set_name][hardness_type]
 
-					fold_metrics = _calculate_metrics(gold_labels, tuple_data)
+					fold_metrics = _calculate_metrics(gold_labels, data_arr)
 
 					if strategy not in metrics_str.keys():
 					    metrics_str[strategy] = [fold_metrics]
@@ -290,12 +340,13 @@ def pandanize_summary(summary):
 	df = pd.DataFrame(columns = ['set', 'hardness', 'strategy',
 	                  'mean_auc_roc', 'std_auc_roc', 'mean_acc', 'std_acc',
 	                  'mean_f1', 'std_f1', 'mean_g1', 'std_g1',
-	                  'mean_pool', 'std_pool'])
+	                  'mean_pool', 'std_pool', 'mean_2xfault',
+	                  'std_2xfault', 'mean_disagr', 'std_disagr'])
 
 	for set_name, set_dict in summary.iteritems():
 		for hardness_type, filter_dict in set_dict.iteritems():
 			for strategy, summary_folds in filter_dict.iteritems():
-				df_folds = pd.DataFrame(_unfilled_row(3, 10),
+				df_folds = pd.DataFrame(_unfilled_row(3, 14),
 					                    columns = df.columns)
 				_fill_dataframe_folds(df_folds, summary_folds, set_name,
 					                  hardness_type, strategy)
