@@ -1,7 +1,7 @@
 # Homework 2
 
 ![python](https://img.shields.io/badge/python-2.7-blue.svg)
-![status](https://img.shields.io/badge/status-in%20progress-yellow.svg)
+![status](https://img.shields.io/badge/status-complete-brightgreen.svg)
 ![license](https://img.shields.io/badge/license-MIT-green.svg)
 
 This is the second homework for the Multiple Classifiers System's class. The project was forked and adapted from the [first homework](https://github.com/jpedrocm/jpcm-lista1-codigo).
