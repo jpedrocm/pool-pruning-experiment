@@ -1,0 +1,29 @@
+
+
+DATASET: jm1
+Mean of metrics
+              mean_auc_roc  std_auc_roc  mean_acc   std_acc   mean_f1    std_f1   mean_g1    std_g1  mean_pool  std_pool  mean_2xfault  std_2xfault  mean_disagr  std_disagr
+strategy                                                                                                                                                                    
+Best First        0.508788     0.008756  0.651898  0.005949  0.416784  0.010490  0.543203  0.058559        1.0       0.0      0.000000     0.000000     0.000000     0.00000
+K Best Means      0.483740     0.017220  0.263601  0.019913  0.260415  0.020985  0.479817  0.020338       10.0       0.0      0.360409     0.060295     0.330686     0.08503
+
+Std of metrics
+              mean_auc_roc  std_auc_roc  mean_acc   std_acc   mean_f1    std_f1   mean_g1    std_g1  mean_pool  std_pool  mean_2xfault  std_2xfault  mean_disagr  std_disagr
+strategy                                                                                                                                                                    
+Best First        0.009016     0.008839  0.269097  0.007931  0.066035  0.004254  0.022441  0.035319        0.0       0.0      0.000000     0.000000     0.000000    0.000000
+K Best Means      0.001453     0.003132  0.003107  0.008129  0.003142  0.008189  0.001288  0.002585        0.0       0.0      0.063046     0.044239     0.117697    0.053354
+-------------------------------------------------
+
+DATASET: cm1
+Mean of metrics
+              mean_auc_roc  std_auc_roc  mean_acc   std_acc   mean_f1    std_f1   mean_g1    std_g1  mean_pool  std_pool  mean_2xfault  std_2xfault  mean_disagr  std_disagr
+strategy                                                                                                                                                                    
+Best First        0.500741     0.001481  0.635222  0.006705  0.347493  0.004544  0.393603  0.050799        1.0       0.0      0.000000     0.000000     0.000000    0.000000
+K Best Means      0.499630     0.001111  0.901000  0.006075  0.473955  0.001677  0.474584  0.001641       10.0       0.0      0.187109     0.032212     0.365591    0.074475
+
+Std of metrics
+              mean_auc_roc  std_auc_roc  mean_acc   std_acc   mean_f1    std_f1   mean_g1    std_g1  mean_pool  std_pool  mean_2xfault  std_2xfault  mean_disagr  std_disagr
+strategy                                                                                                                                                                    
+Best First        0.001283     0.002566  0.461495  0.002954  0.219362  0.005492  0.140601  0.085715        0.0       0.0      0.000000     0.000000     0.000000    0.000000
+K Best Means      0.000642     0.001925  0.001155  0.001863  0.000323  0.000526  0.000337  0.000571        0.0       0.0      0.233364     0.037628     0.042024    0.019701
+-------------------------------------------------
