@@ -2,7 +2,7 @@ import numpy as np
 
 from sklearn.utils.validation import check_is_fitted
 
-class VotingClassifier(object):
+class PrefitVotingClassifier(object):
     """Stripped-down version of VotingClassifier that uses prefit estimators"""
     def __init__(self, estimators, feats_per_estimator, voting='hard', weights=None):
         self.estimators = [e[1] for e in estimators]

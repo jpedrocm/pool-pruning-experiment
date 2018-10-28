@@ -18,7 +18,7 @@ from sklearn.metrics import precision_score, recall_score
 from sklearn.metrics.pairwise import euclidean_distances
 from sklearn.cluster import KMeans
 
-from prefit_voting_classifier import VotingClassifier
+from prefit_voting_classifier import PrefitVotingClassifier
 
 
 def load_experiment_configuration():
@@ -225,7 +225,7 @@ def _best_first_pruning(pool_clf, validation_instances, validation_labels):
 def _get_voting_clf(base_clfs, clfs_feats):
 	pool_size = len(base_clfs)
 	clfs_tuples = [(str(i), base_clfs[i]) for i in xrange(pool_size)]
-	return VotingClassifier(clfs_tuples, clfs_feats, voting = 'hard')
+	return PrefitVotingClassifier(clfs_tuples, clfs_feats, voting = 'hard')
 
 def get_voting_pool_size(voting_pool):
 	return len(voting_pool.estimators)
