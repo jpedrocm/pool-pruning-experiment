@@ -33,7 +33,7 @@ The goal of this homework is to perform an experiment comparing two different pr
 * Enter into the code/ folder in your local repository
 * Run the experiment to produce every ensemble's predictions
 ```
-python main.py
+python generate_predictions.py
 ```
 * Generate all metric results
 ```
